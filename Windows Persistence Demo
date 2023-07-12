@@ -37,6 +37,8 @@ To demonstrate persistence using malicious services, you will use `msfvenom` to 
     
 10. Create a new service that will use your payload with the following command:
      - `sc create TestService binPath= "C:\service.exe" start= auto`
+     - Additionally setting the service to run on a schedule:
+          `schtasks /create /tn "StartUp" /tr "C:\service.exe" /sc DAILY /mo 1
      ![A screenshot depicts the results of the command.](Images/makeservice.PNG)
      - Inform students that `sc` stands for service control and is used to manage queries. We created a new service that will execute our payload and automatically start on login.
      - **Note:** It's important to use double quotes instead of single quotes around the path to the executable. 
